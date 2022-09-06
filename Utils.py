@@ -5,9 +5,8 @@
 
 
 import sys #Read arguements
-import win32api, win32con # For mouse activities
-import pyautogui #Finds Patterns
-import mouse #Clicks
+# from pymouse import PyMouse
+import pyautogui #Finds Patterns, click and keyboard stuff
 from pathlib import Path # Contruction of paths
 from time import sleep # To simulate pause
 import argparse
@@ -16,16 +15,17 @@ import os # For moving between folders and stuff
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import shutil #Moving files
 import pickle #Saving files
-from PIL import Image
+# from PIL import Image
 import tkinter # For GUI i saving files
-from PIL import ImageGrab
+# from PIL import ImageGrab
 import pygame #Gets mouse position and stuff
 from tkinter import filedialog # GUI stuff
 from tkinter.messagebox import showinfo
 import glob #finds specific types of files
 import tkinter as tk
 from tkinter import filedialog as fd
-from pykeyboard import PyKeyboard
+#from pykeyboard import PyKeyboard
+import random
 
 
 
@@ -33,23 +33,26 @@ from pykeyboard import PyKeyboard
 # Press a key and hold it
 
 def keypress(key, time = 0.1):
-    # initialize the keyboard simulator
-    keyboard = PyKeyboard()
+
     # presses the key
-    keyboard.press_key(key)
-    # waits five seconds before releasing the key
+    print(key[0])
+    key = key[0]
+    pyautogui.keyDown(key)
+    # waits a certain amount before releasing the key
     sleep(time)
     # releases the key
-    keyboard.release_key(key)
+    pyautogui.keyUp(key)
 
 
 # Click at a specific location of the screen
 def click():
-    current = pyautogui.position()
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN,current[0],current[1],0,0)
-    sleep(0.1)
-    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP,current[0],current[1],0,0)
+
+    pyautogui.mouseDown()
+        # waits a 0.8s before releasing the key
+
     sleep(0.8)
+    pyautogui.mouseUp()
+    # mouse.release(button='left')
 # finds the location of a pattern????
 def locate_pic(filename):
     pic=None
@@ -58,9 +61,8 @@ def locate_pic(filename):
         return pic
 #Finds the location of a file in a directory and adds the extention to it
 def find_file(address,filename):
-    for ext in ['png','jpg']:
+    for ext in ['png','jpg','PNG']:
         arr = glob.glob(f'{address}/{filename}.{ext}',)
-        # print(f'{address}\{filename}.{ext}',)
         if len(arr)>0:
             break
     return arr[0]
@@ -84,7 +86,7 @@ def whereis_top(path):
         return x,y
 #Just clicks
 def PlainClick():
-    mouse.click('left')
+    pyautogui.click()
     
     
 #=========
@@ -95,6 +97,8 @@ def getEquidistantPoints(p1, p2, parts):
 #=========
 #A more natural movement
 def getgeomPoints(p1,p2,parts):
+    if (p1[0] ==p2[0]) or (p1[1] == p2[1]):
+        return [p1]
     if p2[0]-p1[0]>=0:
         if p2[1]-p1[1]>=0:
             return zip([-1*_+p2[0] for _ in list(reversed(np.geomspace(1, p2[0]-p1[0], parts+1)-1))],[_+p2[1] for _ in list(reversed(np.geomspace(1, p2[1]-p1[1], parts+1)-1))])
@@ -111,18 +115,11 @@ def getgeomPoints(p1,p2,parts):
 
 #=========
 # Will move gradually so it will look like a person
-# To do: add the argument for type of movement
 def naturalmove(final_dest,parts = 100):
     current = pyautogui.position()
-    for things in getgeomPoints(current,final_dest,parts):
-        # print(things)
-        win32api.SetCursorPos((int(things[0]),int(things[1])))
+    for things in getgeomPoints(current,final_dest+(random.uniform(0,10),random.uniform(0,10)),parts):
+        pyautogui.moveTo(int(things[0]),int(things[1]))
         sleep(0.0000001)
-# def naturalmove(final_dest):
-#     current = pyautogui.position()
-#     for things in getEquidistantPoints(current, final_dest, 100):
-#         win32api.SetCursorPos((int(things[0]),int(things[1])))
-#         sleep(0.0000001)
 
     
 #=============
@@ -222,16 +219,17 @@ def retreaveinfo():
     print('please show where you have saved the files')
     sleep(1)
     directory = addressfinder()
+    os.chdir(directory)
     pickels = glob.glob(f"{directory}\*.pkl", recursive = True)
     if f'{directory}\\choices.pkl' in pickels:
         open_file = open(f'{directory}\\choices.pkl', "rb")
         choices = pickle.load(open_file)
         open_file.close()
+        choices = [f'{directory}\\{_}'for _ in choices]
     else:
         choices_address = filefinder('please choose your choices and win lose setuations')
     if f'{directory}\\coordinates.pkl' in pickels:
         open_file = open(f'{directory}\\coordinates.pkl', "rb")
-        choices = pickle.load(open_file)
         open_file.close()
     else:
         coordinates_address = filefinder('please choose your coordinates files')
@@ -241,7 +239,7 @@ def retreaveinfo():
     types = ('*.png', '*.jpg') # the tuple of file types
     pictures = []
     for files in types:
-        pictures.extend(glob.glob(f'{directory}\\{files}', recursive = True))
+        pictures.extend(glob.glob(f'{directory}/{files}.png', recursive = True))
     pictures = [_.split('.')[0] for _ in pictures]
     if f'{directory}\\environment' not in pictures:
         environment = filefinder('please choose your environment file')
@@ -272,6 +270,7 @@ def randomplay(iter = 10):
             print('something is wrong. Ignore this iteration')
             print(win,lose)
 #===============
+# Deep Reinforcement Learning
 def play_game(action):
     coor_choice = whereis(f'{action}.png')
     naturalmove((int(coor_choice[0]),int(coor_choice[1])))
@@ -344,27 +343,4 @@ class DQN:
     def save_model(self, fn):
         self.model.save(fn)
 
-def main():
-    gamma   = 0.9
-    epsilon = .9
-
-    trials  = 1
-    trial_len = 200
-
-    # updateTargetNetwork = 1000
-    dqn_agent = DQN(choices)
-    steps = []
-    for trial in range(trials):
-        for step in range(trial_len):
-            action = dqn_agent.act()
-            reward = play_game(choices[action])
-
-            # reward = reward if not done else -20
-            dqn_agent.remember(action, reward)
-            
-            dqn_agent.replay()       # internally iterates default (prediction) model
-            dqn_agent.target_train() # iterates target model
-
-            print("Completed in {} trials".format(trial))
-    dqn_agent.save_model("success.model")
 
