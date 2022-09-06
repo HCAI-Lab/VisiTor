@@ -77,10 +77,8 @@ if __name__ == "__main__":
         address = args.Dir
         i = 0
         path = find_file(address,f'{args.arg2[0].lower()}')
-        # print('\n \n',path,'\n \n')
         from PIL import Image
         im = Image.open(path)
 
         coor_choice =whereis(path)
-        # print(coor_choice)
         naturalmove((int(coor_choice[0]),int(coor_choice[1])))
