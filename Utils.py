@@ -15,16 +15,13 @@ import os # For moving between folders and stuff
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import shutil #Moving files
 import pickle #Saving files
-# from PIL import Image
 import tkinter # For GUI i saving files
-# from PIL import ImageGrab
 import pygame #Gets mouse position and stuff
 from tkinter import filedialog # GUI stuff
 from tkinter.messagebox import showinfo
 import glob #finds specific types of files
 import tkinter as tk
 from tkinter import filedialog as fd
-#from pykeyboard import PyKeyboard
 import random
 
 
@@ -52,7 +49,6 @@ def click():
 
     sleep(0.8)
     pyautogui.mouseUp()
-    # mouse.release(button='left')
 # finds the location of a pattern????
 def locate_pic(filename):
     pic=None
