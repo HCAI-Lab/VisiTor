@@ -35,13 +35,13 @@ The main file is "EyesNhand.py". In order to run the file on command prompt, you
 To run the program, your request has to have the following format:
 
 ```
-python EyesNhand(The function you want to use) --Dir (Directory) --arg2 (the second argument)
+python Visitor (The function you want to use) --Dir (Directory) --arg2 (the second argument)
 ```
 
 For example, for running "*movecursortopattern*" with all the arguments, we have a code similar bellow
 
 ```
-python EyesNhand movecursortopattern --Dir Directory/to/where/you/want --arg2 SignInBotton
+python Visitor movecursortopattern --Dir Directory/to/where/you/want --arg2 SignInBotton
 ```
 
 ## Calling from Common lisp
@@ -59,6 +59,6 @@ You can load the inferior-shell in the slime by the following code
 Then with the inferior-shell loaded, we can write the following code:
 
 ```commonlisp
-(inferior-shell:run/ss '("python" "C:/Route/To/The/Directory/EyesNhand.py" "Function" "--Dir" "Directory" "--arg2" "arg2 values each inside a quotation" ))
+(inferior-shell:run/ss '("python" "C:/Route/To/The/Directory/Visitor.py" "Function" "--Dir" "Directory" "--arg2" "arg2 values each inside a quotation" ))
 ```
 
