@@ -1,41 +1,95 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
 
 import sys #Read arguements
-# from pymouse import PyMouse
 import pyautogui #Finds Patterns, click and keyboard stuff
-from pathlib import Path # Contruction of paths
 from time import sleep # To simulate pause
-import argparse
 import numpy as np  # Matrix stuff
 import os # For moving between folders and stuff
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import shutil #Moving files
 import pickle #Saving files
-import tkinter # For GUI i saving files
+from PIL import Image
+from tkinter import *# For GUI i saving files
+from PIL import ImageGrab,ImageTk
+import PIL
 import pygame #Gets mouse position and stuff
 from tkinter import filedialog # GUI stuff
-from tkinter.messagebox import showinfo
 import glob #finds specific types of files
 import tkinter as tk
 from tkinter import filedialog as fd
 import random
+import win32gui
+import win32con
+from TemplateMatching import *
+
+width = 1920 #self.winfo_screenwidth()
+height = 1080 #self.winfo_screenheight()
+
+#To click through the tkinter
+
+def setClickthrough(hwnd):
+    try:
+        styles = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
+        styles = win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT
+        win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, styles)
+        win32gui.SetLayeredWindowAttributes(hwnd, 0, 255, win32con.LWA_ALPHA)
+    except Exception as e:
+        print(e)
+root = Tk()
+root.geometry('%dx%d' % (width, height))
 
 
 
+# Create an object of tkinter ImageTk
+img = PIL.Image.open("JSegManEye.jpg")
+resize_image = img.resize((50, 50))
 
-# Press a key and hold it
+img = ImageTk.PhotoImage(resize_image)
+
+root.title("Applepie")
+root.attributes('-transparentcolor', 'white', '-topmost', 1)
+root.config(bg='white')
+root.attributes("-alpha", 0.5)
+root.wm_attributes("-topmost", 1)
+global bg
+
+bg = Canvas(root, width=width, height=height, bg='white')
+
+setClickthrough(bg.winfo_id())
+bg = Label(root, image = img)
+
+bg.pack()
+root.overrideredirect(True)
+
+
+
+def create_circle(x, y, r, canvasName):  # center coordinates, radius
+   x0 = x - r
+   y0 = y - r
+   x1 = x + r
+   y1 = y + r
+   return canvasName.create_oval(x0, y0, x1, y1,fill="blue")
+
+
+def naturaleyemove(final_dest,parts = 100):
+
+    final_dest = (int(final_dest[0]),int(final_dest[1]))
+    current = (int(bg.winfo_rootx()),int(bg.winfo_rooty()))
+    for things in getgeomPoints(current,final_dest+(random.uniform(0,10),random.uniform(0,10)),parts):
+        if things == current:
+            continue
+        else:
+            if np.abs(current[0]-int(things[0]))+np.abs(current[1]-int(things[1]))>10:
+                bg.place(x=int(things[0]),y=int(things[1]))
+                root.update()
+                current = things
+                sleep(0.01)
+    bg.place(x=int(things[0]), y=int(things[1]))
 
 def keypress(key, time = 0.1):
-
     # presses the key
-    print(key[0])
     key = key[0]
     pyautogui.keyDown(key)
-    # waits a certain amount before releasing the key
+    # waits five seconds before releasing the key
     sleep(time)
     # releases the key
     pyautogui.keyUp(key)
@@ -43,21 +97,33 @@ def keypress(key, time = 0.1):
 
 # Click at a specific location of the screen
 def click():
-
-    pyautogui.mouseDown()
-        # waits a 0.8s before releasing the key
-
-    sleep(0.8)
-    pyautogui.mouseUp()
-# finds the location of a pattern????
+#If you want mouse down and up to take more time
+    # pyautogui.mouseDown()
+    # sleep(0.1)
+    # pyautogui.mouseUp()
+# If you want just a click:
+    pyautogui.click()
+    root.update()
+# finds the location of a pattern works better than opencv
 def locate_pic(filename):
     pic=None
     while pic is None:
-        pic = pyautogui.locateOnScreen(filename,confidence=.8)
+        root.update_idletasks()
+        conf = .8
+        while conf>0.5:
+            try:
+                pic = pyautogui.locateOnScreen(filename,confidence=conf)
+                break
+            except:
+                conf*=0.9
         return pic
+# finding the location of a pattern using opencv and rescaling
+def locate_pic_CV(filename):
+    pic = matching(filename)
+    return pic
 #Finds the location of a file in a directory and adds the extention to it
 def find_file(address,filename):
-    for ext in ['png','jpg','PNG']:
+    for ext in ['png','jpg']:
         arr = glob.glob(f'{address}/{filename}.{ext}',)
         if len(arr)>0:
             break
@@ -70,6 +136,7 @@ def whereis(path):
     else:
         x = pic[0]+pic[2]/2
         y = pic[1]+pic[3]/2
+        naturaleyemove((x,y))
         return x,y
 #Finds the location of the top corner of a pattern
 def whereis_top(path):
@@ -91,7 +158,7 @@ def getEquidistantPoints(p1, p2, parts):
     return zip(np.geomspace(p1[0], p2[0], parts+1),
                np.geomspace(p1[1], p2[1], parts+1))
 #=========
-#A more natural movement
+#For a more natural movement we need to break the path geometrically
 def getgeomPoints(p1,p2,parts):
     if (p1[0] ==p2[0]) or (p1[1] == p2[1]):
         return [p1]
@@ -107,15 +174,22 @@ def getgeomPoints(p1,p2,parts):
             return zip([_+p2[0] for _ in list(reversed(np.geomspace(1, -p2[0]+p1[0], parts+1)-1))],[_+p2[1] for _ in list(reversed(np.geomspace(1, -p2[1]+p1[1], parts+1)-1))])
 
 
-#=========
 
 #=========
 # Will move gradually so it will look like a person
+
 def naturalmove(final_dest,parts = 100):
     current = pyautogui.position()
     for things in getgeomPoints(current,final_dest+(random.uniform(0,10),random.uniform(0,10)),parts):
-        pyautogui.moveTo(int(things[0]),int(things[1]))
-        sleep(0.0000001)
+        if current == things:
+            continue
+        elif np.abs(current[0]-things[0])+np.abs(current[1]-things[1])>15:
+            pyautogui.moveTo(int(things[0]),int(things[1]))
+            sleep(0.0000001)
+            current = things
+    pyautogui.moveTo(int(things[0]) - 5, int(things[1]) - 5)
+
+
 
     
 #=============
@@ -126,7 +200,7 @@ def movefiles(current, final):
 #==============
 #GUI for finding folder
 def addressfinder():
-    root = tkinter.Tk()
+    root = Tk()
     root.withdraw() #use to hide tkinter window
 
     currdir = os.getcwd()
@@ -191,7 +265,7 @@ def mainLoop(screen, px):
 #================
 # User will determine which files to select
 def filefinder(text):
-    print(text)
+    #print(text)
     sleep(1)
     root = tkinter.Tk()
     root.withdraw() #use to hide tkinter window
@@ -241,102 +315,3 @@ def retreaveinfo():
         environment = filefinder('please choose your environment file')
     return choices
 #===============
-# Plays random for a specific number of iterations
-def randomplay(iter = 10):
-    results = list()
-    i = 0
-    while i<iter:
-        random_index = random.randint(0,1)
-        selected_choice = choices[0]
-        print(selected_choice)
-        coor_choice = whereis(f'{selected_choice}.png')
-        naturalmove((int(coor_choice[0]),int(coor_choice[1])))
-        click()
-        win = whereis(f'win.png')
-        lose = (whereis(f'lose.png'))
-        if type(whereis(f'win.png')) ==tuple:
-            print(f'in this try, we went for {selected_choice} and won!')
-            results.append('win')
-            i+=1
-        elif type(whereis(f'lose.png')) == tuple:
-            print(f'in this try, we went for {selected_choice} and lost :((')
-            results.append('lose')
-            i+=1
-        else:
-            print('something is wrong. Ignore this iteration')
-            print(win,lose)
-#===============
-# Deep Reinforcement Learning
-def play_game(action):
-    coor_choice = whereis(f'{action}.png')
-    naturalmove((int(coor_choice[0]),int(coor_choice[1])))
-    click()
-    win = whereis(f'win.png')
-    lose = (whereis(f'lose.png'))
-    if type(whereis(f'win.png')) ==tuple:
-        print(f'Match')
-        results =  1
-    elif type(whereis(f'lose.png')) == tuple:
-        print(f'Wrong')
-        results = -1   
-    else:
-        results = play_game(action)
-    return results
-    
-class DQN:
-    def __init__(self,choices):
-        self.memory  = deque(maxlen=200)
-        self.choices = choices
-        self.gamma = 0.85
-        self.epsilon = 1
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.learning_rate = 0.005
-        self.tau = .125
-
-        self.model        = self.create_model()
-        self.target_model = self.create_model()
-
-    def create_model(self):
-        model   = Sequential()
-        state_shape  = 1
-        model.add(Dense(2, input_dim=1, activation="relu",use_bias = False,kernel_initializer="zeros"))
-        model.add(Dense(2,use_bias=False))
-        model.compile(loss="mean_squared_error",
-            optimizer=Adam(lr=self.learning_rate))
-        return model
-
-    def act(self):
-        self.epsilon *= self.epsilon_decay
-        self.epsilon = max(self.epsilon_min, self.epsilon)
-        if np.random.random() < self.epsilon:
-            return np.random.random()<0.5 *0 + np.random.random()>0.5 *1  
-        print((self.model.predict([1])))
-        return np.argmax(self.model.predict([1])[0])
-
-    def remember(self, action, reward):
-        self.memory.append([action, reward])
-
-    def replay(self):
-        batch_size = 4
-        if len(self.memory) < batch_size: 
-            return
-
-        samples = random.sample(self.memory, batch_size)
-        for sample in samples:
-            action, reward = sample
-            target = self.target_model.predict([1])
-            target[0][action] = reward
-            self.model.fit(np.array([1]),target, epochs=1, verbose=0)
-
-    def target_train(self):
-        weights = self.model.get_weights()
-        target_weights = self.target_model.get_weights()
-        for i in range(len(target_weights)):
-            target_weights[i] = weights[i] * self.tau + target_weights[i] * (1 - self.tau)
-        self.target_model.set_weights(target_weights)
-
-    def save_model(self, fn):
-        self.model.save(fn)
-
-
