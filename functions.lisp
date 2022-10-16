@@ -8,7 +8,7 @@
 ;;File address
 
 ;; The directory
-(defvar pythonaddress "c://Users//Amirreza//EyesNHands1//HeadsNtail.py")
+(defvar pythonaddress "c://Users//Amirreza//EyesNHands1//Visitor.py")
 ;;==========================================================================================================================
 (defvar Direc "c://Users//Amirreza//EyesNHandsfiles")
 (ql:quickload 'inferior-shell)
