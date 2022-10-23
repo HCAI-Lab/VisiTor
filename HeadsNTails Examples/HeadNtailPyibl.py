@@ -18,6 +18,7 @@ def choose_and_respond():
     selected_choice = a.choose("Head", "tail")
     f.write(f'{selected_choice}\n')
     f.close()
+    #Todo: Change it to your directory
     path = find_file('C:\\Users\\Amirreza\\EyesNHandsFiles', f'{selected_choice}')
     coor_choice = whereis(path)
     naturalmove((int(coor_choice[0]), int(coor_choice[1])))
@@ -26,9 +27,11 @@ def choose_and_respond():
         sleep(2)
         i+=1
     # sleep(5)
+    #Todo: Change it to your directory
     path = find_file('C:\\Users\\Amirreza\\EyesNHandsFiles', 'win')
     sleep(0.5)
     win = whereis(path)
+    #Todo: Change it to your directory
     path = find_file('C:\\Users\\Amirreza\\EyesNHandsFiles', 'lose')
     lose = (whereis(path))
     if type(win) == tuple:
