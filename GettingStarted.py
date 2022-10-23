@@ -15,7 +15,7 @@ if __name__== "__main__":
         left, right = right, left
     if lower < upper:
         lower, upper = upper, lower
-    im = Image.open(input_loc)
+    im = PIL.Image.open(input_loc)
     im = im.crop((left, upper, right, lower))
     pygame.display.quit()
     im.save(output_loc)
@@ -50,7 +50,7 @@ if __name__== "__main__":
                         left, right = right, left
                     if lower < upper:
                         lower, upper = upper, lower
-                    im = Image.open(input_loc)
+                    im = PIL.Image.open(input_loc)
                     im = im.crop(( left, upper, right, lower))
                     pygame.display.quit()
                     im.save(output_loc)
@@ -87,7 +87,7 @@ if __name__== "__main__":
                 left, right = right, left
             if lower < upper:
                 lower, upper = upper, lower
-            im = Image.open(input_loc)
+            im = PIL.Image.open(input_loc)
             im = im.crop(( left, upper, right, lower))
             pygame.display.quit()
             im.save(output_loc)
