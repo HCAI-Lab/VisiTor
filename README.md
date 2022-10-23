@@ -1,4 +1,4 @@
-# EyesNhand: A module to simulate the movement of eyes and hands
+# VisiTor: A module to simulate the movement of eyes and hands
 
 ## Requirement:
 
@@ -14,7 +14,7 @@ You may first open the file "GettingStarted.py". First, you will be asked to ide
 
 
 
-The main file is "EyesNhand.py". In order to run the file on command prompt, you will need three argument which two of which are optional. The first argument is the function which you want to use. The options for this argument are one of the following:
+The main file is "VisiTor.py". In order to run the file on command prompt, you will need three argument which two of which are optional. The first argument is the function which you want to use. The options for this argument are one of the following:
 
 - "**click**": Will simulate the action of right clicking. It gets no argument.
 - "**Keypress**": Will simulate the action of a Keypress. It will get a argument: 
