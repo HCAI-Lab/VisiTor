@@ -40,7 +40,8 @@ root.geometry('%dx%d' % (width, height))
 
 
 # Create an object of tkinter ImageTk
-img = PIL.Image.open("JSegManEye.jpg")
+#Todo, change it to your directory
+img = PIL.Image.open(r"C:\Users\Amirreza\eyesNhands1\JSegManEye.jpg")
 resize_image = img.resize((50, 50))
 
 img = ImageTk.PhotoImage(resize_image)
