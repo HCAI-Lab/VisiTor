@@ -8,8 +8,10 @@
 ;;File address
 
 ;; The directory
+;;Todo: Change it to your directory
 (defvar pythonaddress "c://Users//Amirreza//EyesNHands1//HeadsNtail.py")
 ;;==========================================================================================================================
+;;Todo: Change it to your directory
 (defvar Direc "c://Users//Amirreza//EyesNHandsfiles")
 (ql:quickload 'inferior-shell)
 (defmethod call-ShellCommand (command &optional arglist)
