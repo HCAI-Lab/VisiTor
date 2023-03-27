@@ -53,6 +53,7 @@ if __name__ == "__main__":
         i = 0
         while address == None:
             if i == 0:
+                action = args.arg2
                 address = whereis(f'{action}.png')
                 i +=1
             else:
