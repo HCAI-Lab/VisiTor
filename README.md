@@ -62,4 +62,4 @@ Then with the inferior-shell loaded, we can write the following code:
 (inferior-shell:run/ss '("python" "C:/Route/To/The/Directory/Visitor.py" "Function" "--Dir" "Directory" "--arg2" "arg2 values each inside a quotation" ))
 ```
 # Authorship
-Amirreza Bagherzadeh [Contact](mailto:abb6024@psu.edu)
+Amirreza Bagherzadeh [Email](mailto:abb6024@psu.edu),<a href="https://github.com/ar-zadeh">Github page</a>
