@@ -5,4 +5,5 @@ PyAutoGUI==0.9.53
 pygame==2.1.2
 pykeyboard==0.1.5
 PyUserInput==0.1.10
-pywin32==223
+pywin32
+imutils
