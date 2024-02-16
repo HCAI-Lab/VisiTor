@@ -10,7 +10,15 @@ pip install -r requirements.txt
 
 ## Getting Started
 
-You may first open the file "GettingStarted.py". First, you will be asked to identify the environment you are going to use for your problem. You are required to click twice, as you click once, there will be a black box originating from that point to where you mouse is. You will need to make sure that the black box includes the whole environment. After that, you are asked to identify your visual modules within the environment. The process in the same as defining the environment the only difference is that instead of being able to choose any part of the screen, you are limited to the environment you defined earlier. You will need to name these items in a way that you'd be able to recall them later to use them. After that, you will need to define feedback modules but for this one, since sometimes, the environment changes based on the goal, you will be offered to use the whole screen again to identify your feedback modules. And then you can save the files or just close and start again.
+You may first open the file "GettingStarted.py". First, you will need to run the file through the command prompt. Then you will need to change the directory by the following code.
+```
+cd address/to/your/directory
+```
+Now you are ready to run GettingStarted.py
+```
+python GettingStarted.py
+```
+First, you will be asked to identify the environment you are going to use for your problem. You are required to click twice, as you click once, there will be a black box originating from that point to where you mouse is. You will need to make sure that the black box includes the whole environment. After that, you are asked to identify your visual modules within the environment. The process in the same as defining the environment the only difference is that instead of being able to choose any part of the screen, you are limited to the environment you defined earlier. You will need to name these items in a way that you'd be able to recall them later to use them. After that, you will need to define feedback modules but for this one, since sometimes, the environment changes based on the goal, you will be offered to use the whole screen again to identify your feedback modules. And then you can save the files or just close and start again.
 
 
 
