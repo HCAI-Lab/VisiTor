@@ -27,14 +27,14 @@ if __name__== "__main__":
     input_loc = 'environment.png'
     while query != 'done':
         if len(choices)==0:
-            print("insert your visual modules")
+            print("Please name your visual item:\n")
         else:
             print("Your current modules are",choices, """\nplease crop your other modules if you have more. If not write "done" """ )
         query = input()
         if query =="done":
             query_goal = 'empty'
             while query_goal != "done":
-                query_goal = input(f'Insert your Feedback modules!, if you are done, type done')
+                query_goal = input(f'Insert your Feedback modules!, if you are done, type done\n')
                 if query_goal != 'done':
                     input('let me know when you are ready by pressing enter')
                     screenshot = ImageGrab.grab()

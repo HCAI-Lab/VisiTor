@@ -54,7 +54,7 @@ if __name__ == "__main__":
         while address == None:
             if i == 0:
                 action = args.arg2
-                address = whereis(f'{action}.png')
+                address = whereis(f'{action[0]}.png')
                 i +=1
             else:
                 input('file does not exist. Please try again')
