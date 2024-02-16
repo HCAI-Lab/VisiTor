@@ -50,18 +50,13 @@ if __name__ == "__main__":
         address = args.Dir
         while args.arg2 == None:
             args.arg2 = input('Please enter the name of the file without extention')
-        address = None
         i = 0
-        while address == None:
-            if i == 0:
-                action = args.arg2
-                path = find_file(address, f'{action[0]}')
-                address = whereis(path)
-                i +=1
-            else:
-                input('file does not exist. Please try again')
-        else:
-            print(address)
+        action = args.arg2
+        path = find_file(address, f'{action[0]}')
+        try:
+            address = whereis(path)
+        except:
+            print("pattern was not found")
     elif args.Function == 'continuouspresskey':
         if args.arg2 == None:
             args.arg2 = input('Please enter a key')
