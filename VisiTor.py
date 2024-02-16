@@ -55,7 +55,7 @@ if __name__ == "__main__":
         while address == None:
             if i == 0:
                 action = args.arg2
-                path = find_file(address, f'{module}')
+                path = find_file(address, f'{action[0]}')
                 address = whereis(path)
                 i +=1
             else:
