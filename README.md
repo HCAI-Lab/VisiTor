@@ -10,7 +10,7 @@ pip install -r requirements.txt
 
 ## Getting Started
 
-You may first open the file "GettingStarted.py". First, you will need to run the file through the command prompt. Then you will need to change the directory by the following code.
+You may first open the file "GettingStarted.py". First, you will need to run the file through the command prompt [How to open command prompt](https://www.howtogeek.com/235101/10-ways-to-open-the-command-prompt-in-windows-10/#:~:text=Press%20Windows%2BR%20to%20open,open%20an%20administrator%20Command%20Prompt.). Then you will need to change the directory by the following code.
 ```
 cd address/to/your/directory
 ```
