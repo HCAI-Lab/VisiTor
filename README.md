@@ -14,6 +14,7 @@ You may first open the file "GettingStarted.py". First, you will need to run the
 ```
 cd address/to/your/directory
 ```
+**Note** if the address to your directory has space (for example "c:/users/important information"), you need to put the address in quotation so that windows understand that space is a part of the address.
 Now you are ready to run GettingStarted.py
 ```
 python GettingStarted.py
