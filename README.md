@@ -7,12 +7,12 @@ VisiTor is a tool that enables computer agents to interact with computer environ
 VisiTor enables visualization methods for attention areas. In our current implementation, we have implemented *fovea simulation* and *gaze point simulation*. 
 
 
-https://github.com/user-attachments/assets/4bc62e0f-4e12-44f2-ac8d-931a442c57b0
+[Visualization Demo 1](https://pennstateoffice365-my.sharepoint.com/:v:/r/personal/abb6024_psu_edu/Documents/VisiTor_Demo/Media1.mp4?csf=1&web=1&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=24CKVH)
 
 
 
-https://github.com/user-attachments/assets/b67c8434-c1de-41d8-852b-12e5cc2070b4
-
+[Visualization Demo 2
+](https://pennstateoffice365-my.sharepoint.com/:v:/r/personal/abb6024_psu_edu/Documents/VisiTor_Demo/Media2.mp4?csf=1&web=1&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=AD1Krn)
 
 ## Requirement:
 
