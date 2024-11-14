@@ -1,5 +1,19 @@
 # VisiTor: A module to simulate the movement of eyes and hands
 
+VisiTor is a tool that enables computer agents to interact with computer environments. It is capable of simulating keyboard and mouse movements, finding visual patterns on the screen and also visualizing where on the screen the agent is paying attention to. VIsiTor was initially developed to enable interaction for ACT-R agents to simulate human users. However, other agents developed using other cognitive architectures or other computer agents can still use this tool to enable interaction and validate the shifts of attention across the screen.   
+
+# Attention Visualization Demos
+
+VisiTor enables visualization methods for attention areas. In our current implementation, we have implemented *fovea simulation* and *gaze point simulation*. 
+
+
+https://github.com/user-attachments/assets/4bc62e0f-4e12-44f2-ac8d-931a442c57b0
+
+
+
+https://github.com/user-attachments/assets/b67c8434-c1de-41d8-852b-12e5cc2070b4
+
+
 ## Requirement:
 
 You first are going to need to install the requirements. Installation of the requirements requires the following code on the command prompt:
