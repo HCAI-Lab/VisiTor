@@ -1,145 +1,63 @@
-# VisiTor: A module to simulate the movement of eyes and hands
+# VisiTor
 
-VisiTor is a Python-based tool that enables computer agents to interact with computer environments. It is capable of simulating keyboard and mouse movements, finding visual patterns on the screen and also visualizing where on the screen the agent is paying attention to. VisiTor was initially developed to enable interaction for ACT-R agents to simulate human users. However, other agents developed using other cognitive architectures or other computer agents can still use this tool to enable interaction and validate the shifts of attention across the screen.
+VisiTor is a visual GUI automation tool that allows you to define functional visual elements on your screen and interact with them programmatically. It leverages Python for screen capturing, template matching (via PyTorch/OpenCV), and simulating user interactions (mouse clicks, mouse movement, and keyboard presses). Furthermore, it features a Common Lisp interface explicitly designed for integration within Emacs workflows.
 
-# (NEW) Attention Visualization Demos
+## What VisiTor Does
 
-VisiTor enables visualization methods for attention areas. In our current implementation, we have implemented *fovea simulation* and *gaze point simulation*. 
+1. **Environment Definition**: By executing `GettingStarted.py`, you can capture screenshots and crop "visual modules" (like buttons or text boxes) that you want to track or continuously interact with.
+2. **Visual Automation**: It scans the screen to find these defined modules (`whatisonscreen`, `whereis`) and performs actions natively using `pyautogui` and `win32api` (e.g., `click`, `movecursorto`, `keypress`, `longkeypress`).
+3. **Lisp/Emacs Integration**: VisiTor exposes its Python functionality to Common Lisp via two different implementations (`Function_TCP.lisp` and `Fucntion_shell.lisp`), making it accessible to Emacs via tools like SLIME or SLY.
 
-[Visualization Demo 1](https://pennstateoffice365-my.sharepoint.com/:v:/r/personal/abb6024_psu_edu/Documents/VisiTor_Demo/Media1.mp4?csf=1&web=1&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=24CKVH)
+---
 
-[Visualization Demo 2](https://pennstateoffice365-my.sharepoint.com/:v:/r/personal/abb6024_psu_edu/Documents/VisiTor_Demo/Media2.mp4?csf=1&web=1&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=AD1Krn)
+## How to Run VisiTor in Emacs
 
-## Features
+In order to use VisiTor in Emacs, you will need Quicklisp setup with your Common Lisp implementation (to load required libraries like `usocket`, `cl-json`, and `inferior-shell`) alongside SLIME/SLY.
 
-- **Mouse and Keyboard Simulation**: Natural movement patterns and key press simulation
-- **Visual Pattern Recognition**: Screen element detection and location
-- **Attention Visualization**: Simulates human attention patterns including foveal vision
-- **TCP Server Integration**: Remote control capabilities through network communication
-- **Cross-Platform Support**: Works on Windows systems with Python 3.x
+There are two primary ways to run VisiTor: using the **TCP Server** method or the **Shell** method.
 
-## Requirements
+### 1. The TCP Server Method (Recommended)
 
-You first are going to need to install the requirements. Installation of the requirements requires the following code on the command prompt:
+This method is faster and more efficient as it doesn't incur the overhead of spawning a new Python process for each command. It keeps a Python server running persistently in the background and communicates over a local socket.
 
+**Step 1:** Start the Python TCP Server. Open a terminal outstide Emacs (or use `M-x shell`) and execute:
 ```bash
-pip install -r requirements.txt
+python TCP_VisiTor.py
 ```
+*(The server defaults to listening on `127.0.0.1:65432`)*
 
-## Getting Started
+**Step 2:** Open Emacs and start your Common Lisp REPL (e.g., `M-x slime` or `M-x sly`).
 
-### Initial Setup
-
-You may first open the file "GettingStarted.py". First, you will need to run the file through the command prompt [How to open command prompt](https://www.howtogeek.com/235101/10-ways-to-open-the-command-prompt-in-windows-10/#:~:text=Press%20Windows%2BR%20to%20open,open%20an%20administrator%20Command%20Prompt.). Then you will need to change the directory by the following code:
-
-```bash
-cd address/to/your/directory
-```
-
-**Note**: If the address to your directory has space (for example "c:/users/important information"), you need to put the address in quotation marks so that Windows understands that space is a part of the address.
-
-Now you are ready to run GettingStarted.py:
-```bash
-python GettingStarted.py
-```
-
-The setup process will guide you through:
-1. Identifying your environment (click twice to create a bounding box)
-2. Defining visual modules within the environment
-3. Defining feedback modules (can use the entire screen)
-4. Saving your configuration
-
-### Core Functions
-
-The main file is "Shell_VisiTor.py". To run the file on the command prompt, you will need three arguments, two of which are optional. The basic syntax is:
-
-```bash
-python Shell_VisiTor.py <function> [--Dir <directory>] [--arg2 <arguments>]
-```
-
-Available functions:
-
-| Function | Description | Required Arguments |
-|----------|-------------|-------------------|
-| `click` | Simulates mouse click | None |
-| `Keypress` | Simulates key press | `--arg2 <key>` |
-| `movecursorto` | Moves cursor to coordinates | `--arg2 <x> <y>` |
-| `whatisonscreen` | Detects visible modules | `--Dir <path> --arg2 <module1> <module2> ...` |
-| `getMouseLocation` | Returns cursor position | None |
-| `whereis` | Locates specific module | `--Dir <path> --arg2 <module>` |
-| `movecursortopattern` | Moves to visual pattern | `--Dir <path> --arg2 <pattern>` |
-| `continuouspresskey` | Holds key down | `--arg2 <key>` |
-
-Example usage:
-```bash
-python Shell_VisiTor.py movecursortopattern --Dir Directory/to/where/you/want --arg2 SignInButton
-```
-
-### TCP Server Usage
-
-VisiTor includes a TCP server for remote control:
-
-1. Start the server:
-```bash
-python TCP_Visitor.py
-```
-
-2. Send commands using the Functions_TCP.py client.
-
-## Calling from Common Lisp
-
-Even though the code is written in Python, it is accessible from any programming language by accessing the command prompt. Here's how to run this code from Common Lisp (CLISP):
-
-### Loading inferior-shell
-
-Load the inferior-shell in SLIME with:
-
+**Step 3:** Load the TCP Lisp bridge:
 ```lisp
-(ql:quickload 'inferior-shell)
+(load "Function_TCP.lisp")
 ```
+*Note: This automatically quickloads `:usocket` and `:cl-json`.*
 
-Then with inferior-shell loaded, you can execute VisiTor commands:
-
+**Step 4:** You can now natively call VisiTor automation functions from within Emacs. For example:
 ```lisp
-(inferior-shell:run/ss '("python" "C:/Route/To/The/Directory/Visitor.py" "Function" "--Dir" "Directory" "--arg2" "arg2 values each inside a quotation"))
+(click)
+(keypress "a")
+(whereis "my_visual_module")
 ```
 
-## Architecture
+### 2. The Shell Method
 
-VisiTor consists of several key components:
+This method runs the corresponding Python CLI script (`Shell_VisiTor.py`) directly from Lisp each time you invoke a function.
 
-- **Shell_VisiTor.py**: Command-line interface for direct interaction
-- **TCP_Visitor.py**: Network server for remote control
-- **Functions.py**: Core functionality classes:
-  - `EyeTracker`: Attention visualization
-  - `VisionFunctions`: Pattern recognition
-  - `MotorFunctions`: Input simulation
-  - `UtilityFunctions`: Helper methods
+**Step 1:** Ensure your Python executable path is configured correctly in `Fucntion_shell.lisp`. 
+Check the `run-shell-command` defun and update the `C:\Users\ambkh\anaconda3\python.exe` path if your Python interpreter is located elsewhere.
 
-## Development
+**Step 2:** In Emacs, start your REPL (`M-x slime` or `M-x sly`).
 
-### Extended Pattern Recognition
+**Step 3:** Load the shell functions:
+```lisp
+(load "Fucntion_shell.lisp")
+```
+*Note: This automatically quickloads `:inferior-shell`.*
 
-VisiTor uses multiple methods for pattern recognition:
-
-- PyAutoGUI's image recognition
-- OpenCV template matching
-- Deep learning-based feature extraction (ResNet50)
-- SIFT feature matching
-
-### Natural Movement Simulation
-
-Mouse movements use geometric interpolation to create natural-looking cursor paths, simulating human-like behavior.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or create issues for bugs and feature requests.
-
-
-
-## Author
-
-Amirreza Bagherzadeh
-- Email: abb6024@psu.edu
-- GitHub: [ar-zadeh](https://github.com/ar-zadeh)
-- HCAI Laboratory
+**Step 4:** You can invoke commands that internally build shell arguments and invoke the Python executable:
+```lisp
+(run-visitor "click")
+(run-visitor "Keypress" nil '("b"))
+```

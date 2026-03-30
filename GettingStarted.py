@@ -1,4 +1,5 @@
-from Utils import *
+from Functions import *
+
 if __name__== "__main__":
 # gets the environment of the game:
     pygame.init()
