@@ -2,26 +2,46 @@ import os
 import shutil
 import pickle
 import random
+import sys
+import subprocess
 from time import sleep
 from typing import Tuple, List, Optional, Union
 
-import numpy as np
-import pyautogui
-import win32gui
-import win32con
-import win32api
-from PIL import Image, ImageTk
-import tkinter as tk
+def auto_install(module_name, package_name=None):
+    if package_name is None:
+        package_name = module_name
+    try:
+        return __import__(module_name)
+    except ImportError:
+        print(f"Module '{module_name}' not found. Attempting to install: {package_name}")
+        try:
+            # User specifically asked for "uv pip install"
+            subprocess.check_call(["uv", "pip", "install", package_name])
+        except Exception:
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+            except Exception as e:
+                print(f"Failed to install package: {package_name}. Error: {e}")
+                raise e
+        return __import__(module_name)
+
+np = auto_install("numpy")
+pyautogui = auto_install("pyautogui")
+win32gui = auto_install("win32gui", "pywin32")
+win32con = auto_install("win32con", "pywin32")
+win32api = auto_install("win32api", "pywin32")
+PIL = auto_install("PIL", "Pillow")
+from PIL import Image, ImageTk, ImageGrab
+tk = auto_install("tkinter") # Standard but sometimes needs install on linux/mac; simplified here
 from tkinter import filedialog
-import cv2
-import glob
-import torch
-import torchvision.models as models
+cv2 = auto_install("cv2", "opencv-python")
+glob = auto_install("glob")
+torch = auto_install("torch")
+torchvision = auto_install("torchvision")
+from torchvision import models, transforms
 from torchvision.models import ResNet50_Weights
-import torchvision.transforms as transforms
-import pygame
-from PIL import ImageGrab, ImageTk
-import PIL
+pygame = auto_install("pygame")
+
 # Constants
 WIDTH = 1920
 HEIGHT = 1080
