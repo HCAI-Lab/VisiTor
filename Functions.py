@@ -4,6 +4,8 @@ import pickle
 import random
 import sys
 import subprocess
+import ctypes
+from ctypes import wintypes
 from time import sleep
 from typing import Tuple, List, Optional, Union
 
@@ -46,6 +48,16 @@ pygame = auto_install("pygame")
 WIDTH = 1920
 HEIGHT = 1080
 IMAGE_PATH_CONFIG = 'image_path_config.pkl'
+
+# Win32 constants for click-through window proc override.
+GWL_WNDPROC = -4
+WM_NCHITTEST = 0x0084
+HTTRANSPARENT = -1
+
+# Pointer-sized Win32 aliases for safe 32/64-bit callback marshalling.
+LONG_PTR = ctypes.c_ssize_t
+UINT_PTR = ctypes.c_size_t
+LRESULT = LONG_PTR
 
 
 #Environment Setup functions
@@ -111,41 +123,103 @@ def mainLoop(screen, px):
 
 class EyeTracker:
     def __init__(self):
-        self.root = tk.Tk()
-        self.setup_gui()
+        self.icon_w = 50
+        self.icon_h = 50
+        self._old_wndproc = None
+        self._wndproc_ref = None
+        self._hwnd = None
+        self._screen = None
+        self._sprite = None
+        self._setup_overlay()
 
-    def setup_gui(self):
-        self.root.geometry(f'{WIDTH}x{HEIGHT}')
-        self.root.title("Applepie")
-        self.root.attributes('-transparentcolor', 'white', '-topmost', 1)
-        self.root.config(bg='white')
-        self.root.attributes("-alpha", 0.5)
-        self.root.wm_attributes("-topmost", 1)
-        self.root.overrideredirect(True)
+    def _default_eye_image_path(self) -> str:
+        return os.path.join(os.path.dirname(__file__), "eye.png")
 
-        self.canvas = tk.Canvas(self.root, width=WIDTH, height=HEIGHT, bg='white')
-        self.setClickthrough(self.canvas.winfo_id())
-
+    def _resolve_eye_image_path(self) -> str:
         image_path = self.load_image_path()
-        if image_path is None:
-            image_path = self.prompt_for_image()
+        if image_path and os.path.isfile(image_path):
+            return image_path
 
-        img = Image.open(image_path)
-        resize_image = img.resize((50, 50))
-        self.img = ImageTk.PhotoImage(resize_image)
+        default_path = self._default_eye_image_path()
+        if os.path.isfile(default_path):
+            self.save_image_path(default_path)
+            return default_path
 
-        self.bg_label = tk.Label(self.root, image=self.img)
-        self.bg_label.pack()
+        # Last resort fallback to file dialog if no default image exists.
+        return self.prompt_for_image()
+
+    def _setup_overlay(self):
+        image_path = self._resolve_eye_image_path()
+
+        pygame.init()
+        self._screen = pygame.display.set_mode((self.icon_w, self.icon_h), pygame.NOFRAME)
+        pygame.display.set_caption("VisiTorEye")
+
+        raw_img = pygame.image.load(image_path).convert_alpha()
+        self._sprite = pygame.transform.smoothscale(raw_img, (self.icon_w, self.icon_h))
+        self._screen.fill((0, 0, 0))
+        self._screen.blit(self._sprite, (0, 0))
+        pygame.display.update()
+
+        wm_info = pygame.display.get_wm_info()
+        self._hwnd = wm_info.get("window")
+        if not self._hwnd:
+            raise RuntimeError("Failed to obtain window handle for eye overlay")
+
+        self.setClickthrough(self._hwnd)
+        self.install_hit_test_transparent(self._hwnd)
+        win32gui.SetWindowPos(
+            self._hwnd,
+            win32con.HWND_TOPMOST,
+            0,
+            0,
+            0,
+            0,
+            win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE | win32con.SWP_SHOWWINDOW,
+        )
 
     @staticmethod
     def setClickthrough(hwnd):
         try:
             styles = win32gui.GetWindowLong(hwnd, win32con.GWL_EXSTYLE)
-            styles = win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT
+            styles = (styles |
+                      win32con.WS_EX_LAYERED |
+                      win32con.WS_EX_TRANSPARENT |
+                      win32con.WS_EX_NOACTIVATE |
+                      win32con.WS_EX_TOOLWINDOW)
             win32gui.SetWindowLong(hwnd, win32con.GWL_EXSTYLE, styles)
             win32gui.SetLayeredWindowAttributes(hwnd, 0, 255, win32con.LWA_ALPHA)
         except Exception as e:
             print(f"Error in setClickthrough: {e}")
+
+    def install_hit_test_transparent(self, hwnd):
+        """Subclass the overlay window and return HTTRANSPARENT on hit-test.
+        This guarantees clicks pass through to underlying windows.
+        """
+        try:
+            user32 = ctypes.windll.user32
+            user32.GetWindowLongPtrW.argtypes = [wintypes.HWND, ctypes.c_int]
+            user32.GetWindowLongPtrW.restype = LONG_PTR
+            user32.SetWindowLongPtrW.argtypes = [wintypes.HWND, ctypes.c_int, LONG_PTR]
+            user32.SetWindowLongPtrW.restype = LONG_PTR
+            user32.CallWindowProcW.argtypes = [LONG_PTR, wintypes.HWND, wintypes.UINT, UINT_PTR, LONG_PTR]
+            user32.CallWindowProcW.restype = LRESULT
+
+            old_wndproc = user32.GetWindowLongPtrW(hwnd, GWL_WNDPROC)
+
+            WNDPROC = ctypes.WINFUNCTYPE(LRESULT, wintypes.HWND, wintypes.UINT, UINT_PTR, LONG_PTR)
+
+            def _proc(hWnd, msg, wParam, lParam):
+                if msg == WM_NCHITTEST:
+                    return HTTRANSPARENT
+                return user32.CallWindowProcW(old_wndproc, hWnd, msg, wParam, lParam)
+
+            self._wndproc_ref = WNDPROC(_proc)
+            new_wndproc_addr = ctypes.cast(self._wndproc_ref, ctypes.c_void_p).value
+            user32.SetWindowLongPtrW(hwnd, GWL_WNDPROC, LONG_PTR(new_wndproc_addr))
+            self._old_wndproc = old_wndproc
+        except Exception as e:
+            print(f"Error installing transparent hit-test WndProc: {e}")
 
     @staticmethod
     def save_image_path(image_path: str):
@@ -162,8 +236,10 @@ class EyeTracker:
 
     def prompt_for_image(self) -> str:
         print('Select the JsegManEye image')
-        self.root.withdraw()
+        root = tk.Tk()
+        root.withdraw()
         image_path = filedialog.askopenfilename(title='Select the JsegManEye image')
+        root.destroy()
         if image_path:
             self.save_image_path(image_path)
             return image_path
@@ -172,18 +248,36 @@ class EyeTracker:
 
     def naturaleyemove(self, final_dest: Tuple[int, int], parts: int = 100):
         final_dest = (int(final_dest[0]), int(final_dest[1]))
-        current = (int(self.bg_label.winfo_rootx()), int(self.bg_label.winfo_rooty()))
+        rect = win32gui.GetWindowRect(self._hwnd)
+        current = (int(rect[0]), int(rect[1]))
 
         for point in self.getgeomPoints(current, final_dest, parts):
             if point == current:
                 continue
             if np.abs(current[0] - int(point[0])) + np.abs(current[1] - int(point[1])) > 10:
-                self.bg_label.place(x=int(point[0]), y=int(point[1]))
-                self.root.update()
+                win32gui.SetWindowPos(
+                    self._hwnd,
+                    win32con.HWND_TOPMOST,
+                    int(point[0]),
+                    int(point[1]),
+                    0,
+                    0,
+                    win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE | win32con.SWP_SHOWWINDOW,
+                )
+                pygame.event.pump()
                 current = point
                 sleep(0.01)
 
-        self.bg_label.place(x=int(point[0]), y=int(point[1]))
+        win32gui.SetWindowPos(
+            self._hwnd,
+            win32con.HWND_TOPMOST,
+            int(final_dest[0]),
+            int(final_dest[1]),
+            0,
+            0,
+            win32con.SWP_NOSIZE | win32con.SWP_NOACTIVATE | win32con.SWP_SHOWWINDOW,
+        )
+        pygame.event.pump()
 
     @staticmethod
     def getgeomPoints(p1: Tuple[float, float], p2: Tuple[float, float], parts: int) -> List[Tuple[float, float]]:

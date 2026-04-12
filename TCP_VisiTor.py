@@ -7,6 +7,8 @@ import subprocess
 import sys
 import importlib
 
+from knowledge_descipherer import VLLMClient
+
 def auto_install(module_name, package_name=None):
     if package_name is None:
         package_name = module_name
@@ -36,6 +38,12 @@ from Functions import *
 
 HOST = '127.0.0.1'  # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+
+LLM_CLIENT = VLLMClient()
+
+
+def ask_llm(prompt, **kwargs):
+    return LLM_CLIENT.ask(prompt, **kwargs)
 
 
 def _safe_mouse_position():
@@ -77,6 +85,24 @@ def _set_cursor_pos_verified(x, y):
         "before": [before[0], before[1]] if before else None,
         "after": [after[0], after[1]] if after else None,
         "moved": after == target,
+        "errors": errors,
+    }
+
+
+def _set_eye_pos_verified(x, y):
+    target = (int(x), int(y))
+    errors = []
+    moved = False
+
+    try:
+        eye_tracker.naturaleyemove(target)
+        moved = True
+    except Exception as e:
+        errors.append(f"eye_tracker.naturaleyemove failed: {e}")
+
+    return {
+        "target": [target[0], target[1]],
+        "moved": moved,
         "errors": errors,
     }
 
@@ -217,6 +243,30 @@ def execute_command(command):
             return {"error": "continuouspresskey requires a key"}
         longkeypress(key)
         return {"result": f"Continuous key press started for '{key}'"}
+    elif function in {'askllm', 'queryllm', 'llm', 'chat'}:
+        prompt = kwargs.get('prompt') if kwargs else None
+        if prompt is None and args:
+            prompt = args[0]
+        if prompt is None:
+            return {"error": "askllm requires a prompt"}
+
+        llm_kwargs = dict(kwargs) if isinstance(kwargs, dict) else {}
+        llm_kwargs.pop('prompt', None)
+
+        # Allow per-request endpoint/model override without restarting TCP_VisiTor.
+        url_override = llm_kwargs.pop('url', None)
+        model_override = llm_kwargs.pop('model', None)
+        timeout_override = llm_kwargs.get('timeout')
+
+        client = LLM_CLIENT
+        if url_override or model_override or timeout_override:
+            client = VLLMClient(
+                url=url_override or LLM_CLIENT.url,
+                model=model_override or LLM_CLIENT.model,
+                timeout_seconds=timeout_override or LLM_CLIENT.timeout_seconds,
+            )
+
+        return client.ask(prompt, **llm_kwargs)
     elif function == 'whereis':
         # Supports both whereis(path) and Shell style whereis(dir, filename)
         directory = kwargs.get('Dir') if kwargs else None
@@ -263,6 +313,25 @@ def execute_command(command):
             return {"result": f"Cursor moved to {target[0]}, {target[1]}", "details": move_info}
         return {
             "error": f"Cursor did not reach target {target[0]}, {target[1]}",
+            "details": move_info,
+        }
+    elif function == 'moveeyeto':
+        x = kwargs.get('x') if kwargs else None
+        y = kwargs.get('y') if kwargs else None
+        if x is None or y is None:
+            if len(args) >= 2:
+                x, y = args[0], args[1]
+            elif len(args) == 1 and isinstance(args[0], (list, tuple)) and len(args[0]) == 2:
+                x, y = args[0][0], args[0][1]
+            else:
+                return {"error": "moveeyeto requires x and y coordinates"}
+
+        move_info = _set_eye_pos_verified(x, y)
+        target = move_info["target"]
+        if move_info["moved"]:
+            return {"result": f"Eye moved to {target[0]}, {target[1]}", "details": move_info}
+        return {
+            "error": f"Eye did not reach target {target[0]}, {target[1]}",
             "details": move_info,
         }
     elif function == 'movecursortopattern':
@@ -403,13 +472,15 @@ def execute_command(command):
 
 def start_server():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, PORT))
         s.listen()
         print(f"Server listening on {HOST}:{PORT}")
         while True:
             conn, addr = s.accept()
-            client_thread = threading.Thread(target=handle_client, args=(conn, addr))
-            client_thread.start()
+            # Tk-based eye overlay operations must run on the main thread.
+            # Handling requests synchronously here avoids calling EyeTracker from worker threads.
+            handle_client(conn, addr)
 
 if __name__ == "__main__":
     start_server()
