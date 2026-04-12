@@ -140,7 +140,8 @@ def _import_visual_module(module_name="visual_v3"):
     spreadsheet_dir = _default_spreadsheet_dir()
     if spreadsheet_dir not in sys.path:
         sys.path.insert(0, spreadsheet_dir)
-
+    if module_name in sys.modules:
+        return importlib.reload(sys.modules[module_name])
     return importlib.import_module(module_name)
 
 
